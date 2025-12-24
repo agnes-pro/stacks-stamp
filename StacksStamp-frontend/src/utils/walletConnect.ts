@@ -1,5 +1,5 @@
 import { Core } from '@walletconnect/core';
-import { IWeb3Wallet, Web3Wallet } from '@reown/walletkit';
+import WalletKit from '@reown/walletkit';
 import { buildApprovedNamespaces, getSdkError } from '@walletconnect/utils';
 
 // WalletConnect configuration
