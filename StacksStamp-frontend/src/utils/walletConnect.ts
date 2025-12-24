@@ -2,6 +2,9 @@ import { Core } from '@walletconnect/core';
 import WalletKit from '@reown/walletkit';
 import { buildApprovedNamespaces, getSdkError } from '@walletconnect/utils';
 
+// Type for WalletKit instance
+type WalletKitInstance = Awaited<ReturnType<typeof WalletKit.init>>;
+
 // WalletConnect configuration
 const WALLETCONNECT_PROJECT_ID = import.meta.env.VITE_WALLETCONNECT_PROJECT_ID || 'YOUR_PROJECT_ID';
 
@@ -21,12 +24,12 @@ const STACKS_METHODS = [
 
 const STACKS_EVENTS = ['accountsChanged', 'chainChanged'];
 
-let web3wallet: typeof WalletKit | null = null;
+let web3wallet: WalletKitInstance | null = null;
 
 /**
  * Initialize WalletConnect
  */
-export async function initWalletConnect(): Promise<typeof WalletKit> {
+export async function initWalletConnect(): Promise<WalletKitInstance> {
   if (web3wallet) {
     return web3wallet;
   }
@@ -51,7 +54,7 @@ export async function initWalletConnect(): Promise<typeof WalletKit> {
 /**
  * Get WalletConnect instance
  */
-export function getWalletConnect(): typeof WalletKit | null {
+export function getWalletConnect(): WalletKitInstance | null {
   return web3wallet;
 }
 
@@ -66,7 +69,8 @@ export async function connectWalletConnect(uri: string, userAddress: string, net
     await wallet.pair({ uri });
 
     // Listen for session proposals
-    wallet.on('session_proposal', async (proposal) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    wallet.on('session_proposal', async (proposal: any) => {
       try {
         const { id, params } = proposal;
         
@@ -101,7 +105,8 @@ export async function connectWalletConnect(uri: string, userAddress: string, net
     });
 
     // Listen for session requests (transaction signing, etc.)
-    wallet.on('session_request', async (event) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    wallet.on('session_request', async (event: any) => {
       const { topic, params, id } = event;
       const { request } = params;
 
