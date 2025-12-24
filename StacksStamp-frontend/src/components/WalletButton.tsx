@@ -6,7 +6,7 @@ import WalletSelectionModal from './WalletSelectionModal';
 import type { WalletType } from '../utils/walletDetection';
 
 export default function WalletButton() {
-  const { userAddress, isConnected, isConnecting, error, network, selectedWallet, connect, disconnect } = useWallet();
+  const { userAddress, isConnected, isConnecting, error, network, selectedWallet, connect, connectWithUri, disconnect } = useWallet();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -45,6 +45,11 @@ export default function WalletButton() {
   const handleSelectWallet = async (walletType: WalletType) => {
     setIsModalOpen(false);
     await connect(walletType);
+  };
+
+  const handleConnectWithUri = async (uri: string) => {
+    await connectWithUri(uri);
+    setIsModalOpen(false);
   };
 
   const handleRetry = () => {
@@ -164,6 +169,7 @@ export default function WalletButton() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSelectWallet={handleSelectWallet}
+        onConnectWithUri={handleConnectWithUri}
         isConnecting={isConnecting}
       />
     </>

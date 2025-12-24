@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { X, ExternalLink, CheckCircle, AlertCircle, Download } from 'lucide-react';
 import { getAvailableWallets, type WalletType } from '../utils/walletDetection';
 
@@ -5,6 +6,7 @@ interface WalletSelectionModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSelectWallet: (walletType: WalletType) => void;
+  onConnectWithUri?: (uri: string) => Promise<void>;
   isConnecting: boolean;
 }
 
@@ -12,11 +14,53 @@ export default function WalletSelectionModal({
   isOpen,
   onClose,
   onSelectWallet,
+  onConnectWithUri,
   isConnecting,
 }: WalletSelectionModalProps) {
+  const [showUriInput, setShowUriInput] = useState(false);
+  const [uri, setUri] = useState('');
+  const [uriError, setUriError] = useState('');
+
   if (!isOpen) return null;
 
   const wallets = getAvailableWallets();
+
+  const handleWalletClick = (walletType: WalletType) => {
+    if (walletType === 'walletconnect') {
+      setShowUriInput(true);
+    } else {
+      onSelectWallet(walletType);
+    }
+  };
+
+  const handleUriConnect = async () => {
+    if (!uri.trim()) {
+      setUriError('Please enter a valid WalletConnect URI');
+      return;
+    }
+
+    if (!uri.startsWith('wc:')) {
+      setUriError('URI must start with "wc:"');
+      return;
+    }
+
+    try {
+      setUriError('');
+      if (onConnectWithUri) {
+        await onConnectWithUri(uri);
+        setShowUriInput(false);
+        setUri('');
+      }
+    } catch (error) {
+      setUriError(error instanceof Error ? error.message : 'Failed to connect');
+    }
+  };
+
+  const handleBackToWallets = () => {
+    setShowUriInput(false);
+    setUri('');
+    setUriError('');
+  };
 
   return (
     <>
@@ -36,10 +80,13 @@ export default function WalletSelectionModal({
           <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
             <div>
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                Connect Wallet
+                {showUriInput ? 'Connect via WalletConnect' : 'Connect Wallet'}
               </h2>
               <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                Choose your preferred Stacks wallet
+                {showUriInput 
+                  ? 'Paste your WalletConnect URI to connect' 
+                  : 'Choose your preferred Stacks wallet'
+                }
               </p>
             </div>
             <button
@@ -51,69 +98,119 @@ export default function WalletSelectionModal({
             </button>
           </div>
 
-          {/* Wallet List */}
+          {/* Wallet List or URI Input */}
           <div className="p-6 space-y-3 max-h-[60vh] overflow-y-auto">
-            {wallets.map((wallet) => (
-              <div key={wallet.id}>
-                {wallet.installed ? (
-                  // Installed wallet - clickable
-                  <button
-                    onClick={() => onSelectWallet(wallet.id)}
+            {showUriInput ? (
+              // WalletConnect URI Input
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    WalletConnect URI
+                  </label>
+                  <input
+                    type="text"
+                    value={uri}
+                    onChange={(e) => {
+                      setUri(e.target.value);
+                      setUriError('');
+                    }}
+                    placeholder="wc:..."
+                    className="w-full px-4 py-3 rounded-lg border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                     disabled={isConnecting}
-                    className="w-full flex items-center gap-4 p-4 rounded-xl border-2 border-gray-200 dark:border-gray-700 hover:border-primary dark:hover:border-primary hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  />
+                  {uriError && (
+                    <p className="mt-2 text-sm text-red-600 dark:text-red-400">
+                      {uriError}
+                    </p>
+                  )}
+                  <p className="mt-2 text-xs text-gray-600 dark:text-gray-400">
+                    Open your mobile wallet app and scan the QR code to get the WalletConnect URI
+                  </p>
+                </div>
+
+                <div className="flex gap-3">
+                  <button
+                    onClick={handleBackToWallets}
+                    disabled={isConnecting}
+                    className="flex-1 px-4 py-3 rounded-lg border-2 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
                   >
-                    {/* Icon */}
-                    <div className="text-4xl">{wallet.icon}</div>
-
-                    {/* Info */}
-                    <div className="flex-1 text-left">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-gray-900 dark:text-white">
-                          {wallet.name}
-                        </h3>
-                        <CheckCircle className="h-4 w-4 text-green-500" />
-                      </div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        {isConnecting ? 'Connecting...' : 'Ready to connect'}
-                      </p>
-                    </div>
-
-                    {/* Arrow */}
-                    <ExternalLink className="h-5 w-5 text-gray-400" />
+                    Back
                   </button>
-                ) : (
-                  // Not installed wallet - show install option
-                  <div className="w-full flex items-center gap-4 p-4 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
-                    {/* Icon (grayed out) */}
-                    <div className="text-4xl opacity-50">{wallet.icon}</div>
-
-                    {/* Info */}
-                    <div className="flex-1 text-left">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-gray-900 dark:text-white">
-                          {wallet.name}
-                        </h3>
-                        <AlertCircle className="h-4 w-4 text-gray-400" />
-                      </div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        Not installed
-                      </p>
-                    </div>
-
-                    {/* Install button */}
-                    <a
-                      href={wallet.downloadUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-1 px-3 py-1.5 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary/90 transition-colors"
-                    >
-                      <Download className="h-4 w-4" />
-                      Install
-                    </a>
-                  </div>
-                )}
+                  <button
+                    onClick={handleUriConnect}
+                    disabled={isConnecting || !uri.trim()}
+                    className="flex-1 px-4 py-3 rounded-lg bg-primary text-white font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isConnecting ? 'Connecting...' : 'Connect'}
+                  </button>
+                </div>
               </div>
-            ))}
+            ) : (
+              // Wallet Selection List
+              wallets.map((wallet) => (
+                <div key={wallet.id}>
+                  {wallet.installed ? (
+                    // Installed wallet - clickable
+                    <button
+                      onClick={() => handleWalletClick(wallet.id)}
+                      disabled={isConnecting}
+                      className="w-full flex items-center gap-4 p-4 rounded-xl border-2 border-gray-200 dark:border-gray-700 hover:border-primary dark:hover:border-primary hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {/* Icon */}
+                      <div className="text-4xl">{wallet.icon}</div>
+
+                      {/* Info */}
+                      <div className="flex-1 text-left">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-semibold text-gray-900 dark:text-white">
+                            {wallet.name}
+                          </h3>
+                          {wallet.id !== 'walletconnect' && (
+                            <CheckCircle className="h-4 w-4 text-green-500" />
+                          )}
+                        </div>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          {isConnecting ? 'Connecting...' : wallet.id === 'walletconnect' ? 'Connect any wallet via QR' : 'Ready to connect'}
+                        </p>
+                      </div>
+
+                      {/* Arrow */}
+                      <ExternalLink className="h-5 w-5 text-gray-400" />
+                    </button>
+                  ) : (
+                    // Not installed wallet - show install option
+                    <div className="w-full flex items-center gap-4 p-4 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+                      {/* Icon (grayed out) */}
+                      <div className="text-4xl opacity-50">{wallet.icon}</div>
+
+                      {/* Info */}
+                      <div className="flex-1 text-left">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-semibold text-gray-900 dark:text-white">
+                            {wallet.name}
+                          </h3>
+                          <AlertCircle className="h-4 w-4 text-gray-400" />
+                        </div>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          Not installed
+                        </p>
+                      </div>
+
+                      {/* Install button */}
+                      <a
+                        href={wallet.downloadUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 px-3 py-1.5 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary/90 transition-colors"
+                      >
+                        <Download className="h-4 w-4" />
+                        Install
+                      </a>
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
           </div>
 
           {/* Footer */}
