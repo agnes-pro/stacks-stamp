@@ -11,6 +11,12 @@ import {
   clearPreferredWallet,
   type WalletType
 } from '../utils/walletDetection';
+import {
+  initWalletConnect,
+  connectWalletConnect,
+  disconnectWalletConnect,
+  isWalletConnectConnected
+} from '../utils/walletConnect';
 
 // Define all types inline to avoid module resolution issues
 interface WalletContextType {
@@ -21,6 +27,7 @@ interface WalletContextType {
   network: 'mainnet' | 'testnet';
   selectedWallet: WalletType | null;
   connect: (walletType?: WalletType) => Promise<void>;
+  connectWithUri: (uri: string) => Promise<void>;
   disconnect: () => void;
 }
 
@@ -40,7 +47,8 @@ export function WalletProvider({ children }: WalletProviderProps) {
 
   // Check for existing session on mount
   useEffect(() => {
-    const checkAuth = () => {
+    const checkAuth = async () => {
+      // Check Stacks Connect session
       if (checkConnection()) {
         const data = getLocalStorage();
         // Get the first Stacks address from the stx array
@@ -50,6 +58,23 @@ export function WalletProvider({ children }: WalletProviderProps) {
           setUserAddress(stxAddress);
           setIsConnected(true);
         }
+      }
+
+      // Check WalletConnect session
+      try {
+        await initWalletConnect();
+        if (isWalletConnectConnected()) {
+          // WalletConnect is connected
+          // Note: You'll need to store the address when connecting
+          const wcAddress = localStorage.getItem('wc_address');
+          if (wcAddress) {
+            setUserAddress(wcAddress);
+            setIsConnected(true);
+            setSelectedWallet('walletconnect');
+          }
+        }
+      } catch (error) {
+        console.error('Error checking WalletConnect:', error);
       }
     };
 
@@ -160,7 +185,53 @@ export function WalletProvider({ children }: WalletProviderProps) {
     }
   };
 
-  const disconnect = () => {
+  const connectWithUri = async (uri: string): Promise<void> => {
+    setIsConnecting(true);
+    setError(null);
+
+    try {
+      console.log('Connecting via WalletConnect URI...');
+      
+      // First, we need a wallet to be connected to get the address
+      if (!userAddress) {
+        throw new Error('Please connect your wallet first before using WalletConnect');
+      }
+
+      await connectWalletConnect(uri, userAddress, network);
+      
+      // Store address for WalletConnect session
+      localStorage.setItem('wc_address', userAddress);
+      setSelectedWallet('walletconnect');
+      savePreferredWallet('walletconnect');
+      
+      console.log('✅ WalletConnect connected successfully');
+    } catch (err) {
+      console.error('WalletConnect connection error:', err);
+      
+      let errorMessage = 'Failed to connect via WalletConnect';
+      if (err instanceof Error) {
+        errorMessage = err.message;
+      }
+      
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setIsConnecting(false);
+    }
+  };
+
+  const disconnect = async () => {
+    // Disconnect WalletConnect if connected
+    if (selectedWallet === 'walletconnect') {
+      try {
+        await disconnectWalletConnect();
+        localStorage.removeItem('wc_address');
+      } catch (error) {
+        console.error('Error disconnecting WalletConnect:', error);
+      }
+    }
+    
+    // Disconnect Stacks wallet
     disconnectWallet();
     setUserAddress(null);
     setIsConnected(false);
@@ -177,6 +248,7 @@ export function WalletProvider({ children }: WalletProviderProps) {
     network,
     selectedWallet,
     connect,
+    connectWithUri,
     disconnect,
   };
 
