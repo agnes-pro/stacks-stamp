@@ -6,6 +6,7 @@ interface WalletSelectionModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSelectWallet: (walletType: WalletType) => void;
+  onConnectWithUri?: (uri: string) => Promise<void>;
   isConnecting: boolean;
 }
 
@@ -13,11 +14,53 @@ export default function WalletSelectionModal({
   isOpen,
   onClose,
   onSelectWallet,
+  onConnectWithUri,
   isConnecting,
 }: WalletSelectionModalProps) {
+  const [showUriInput, setShowUriInput] = useState(false);
+  const [uri, setUri] = useState('');
+  const [uriError, setUriError] = useState('');
+
   if (!isOpen) return null;
 
   const wallets = getAvailableWallets();
+
+  const handleWalletClick = (walletType: WalletType) => {
+    if (walletType === 'walletconnect') {
+      setShowUriInput(true);
+    } else {
+      onSelectWallet(walletType);
+    }
+  };
+
+  const handleUriConnect = async () => {
+    if (!uri.trim()) {
+      setUriError('Please enter a valid WalletConnect URI');
+      return;
+    }
+
+    if (!uri.startsWith('wc:')) {
+      setUriError('URI must start with "wc:"');
+      return;
+    }
+
+    try {
+      setUriError('');
+      if (onConnectWithUri) {
+        await onConnectWithUri(uri);
+        setShowUriInput(false);
+        setUri('');
+      }
+    } catch (error) {
+      setUriError(error instanceof Error ? error.message : 'Failed to connect');
+    }
+  };
+
+  const handleBackToWallets = () => {
+    setShowUriInput(false);
+    setUri('');
+    setUriError('');
+  };
 
   return (
     <>
@@ -37,10 +80,13 @@ export default function WalletSelectionModal({
           <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
             <div>
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                Connect Wallet
+                {showUriInput ? 'Connect via WalletConnect' : 'Connect Wallet'}
               </h2>
               <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                Choose your preferred Stacks wallet
+                {showUriInput 
+                  ? 'Paste your WalletConnect URI to connect' 
+                  : 'Choose your preferred Stacks wallet'
+                }
               </p>
             </div>
             <button
