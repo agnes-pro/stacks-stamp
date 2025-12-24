@@ -10,7 +10,7 @@ plan:
       transactions:
         - contract-publish:
             contract-name: StackStamp
-            expected-sender: SPVNRH0FC9XJP8J18C92J09MNBS2BS2TW55MYA15
+            expected-sender: SP1JWWHAQQ359EBKV4X77KM716AVSFCQ1AH56RVFX
             cost: 25950
             path: contracts/StackStamp.clar
             anchor-block-only: true
