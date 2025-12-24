@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { X, ExternalLink, CheckCircle, AlertCircle, Download } from 'lucide-react';
 import { getAvailableWallets, type WalletType } from '../utils/walletDetection';
 
