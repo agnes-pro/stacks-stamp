@@ -12,6 +12,8 @@ StackStamp is a decentralized attendance tracking system where event creators pu
 - **Event Management**: Creators can close events to prevent new check-ins
 - **No Duplicates**: Smart contract prevents double check-ins
 - **Minimal Storage**: Event metadata stored off-chain, only essentials on-chain
+- **Multi-Wallet Support**: Connect via Leather, Xverse, Hiro, or WalletConnect
+- **Mobile Wallet Integration**: Use WalletConnect to connect mobile wallets
 
 ## Smart Contract Overview
 
@@ -237,6 +239,49 @@ Off-chain indexers can capture and store this data for frontends while keeping t
 - Event creators have exclusive control over their events
 - No admin backdoors or pause mechanisms (fully decentralized)
 - Input validation prevents empty event names
+
+## Frontend Application
+
+A React-based web application is available in the `StacksStamp-frontend` directory.
+
+### Features
+
+- Modern UI built with React, TypeScript, and Tailwind CSS
+- Multi-wallet support: Leather, Xverse, Hiro, and WalletConnect
+- Mobile wallet integration via WalletConnect
+- Event creation and management
+- Real-time attendance tracking
+
+### Setup
+
+1. Navigate to the frontend directory:
+```bash
+cd StacksStamp-frontend
+```
+
+2. Install dependencies:
+```bash
+npm install
+```
+
+3. Configure environment variables:
+```bash
+cp .env.example .env
+```
+
+4. Get a WalletConnect Project ID from [WalletConnect Cloud](https://cloud.walletconnect.com/) and add it to `.env`:
+```
+VITE_WALLETCONNECT_PROJECT_ID=your_project_id_here
+```
+
+5. Start the development server:
+```bash
+npm run dev
+```
+
+### WalletConnect Integration
+
+The application supports WalletConnect for connecting mobile wallets. See [WALLETCONNECT.md](./StacksStamp-frontend/WALLETCONNECT.md) for detailed integration guide.
 
 ## Roadmap
 
