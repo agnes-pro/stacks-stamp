@@ -1,6 +1,6 @@
 // Wallet detection and status utilities
 
-export type WalletType = 'leather' | 'xverse' | 'hiro';
+export type WalletType = 'leather' | 'xverse' | 'hiro' | 'walletconnect';
 
 export interface WalletInfo {
   id: WalletType;
@@ -60,6 +60,13 @@ export function getAvailableWallets(): WalletInfo[] {
       icon: '💙',
       installed: detectWallet('hiro'),
       downloadUrl: 'https://wallet.hiro.so/',
+    },
+    {
+      id: 'walletconnect',
+      name: 'WalletConnect',
+      icon: '🔗',
+      installed: true, // Always available
+      downloadUrl: 'https://walletconnect.com/',
     },
   ];
 }
