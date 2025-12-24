@@ -1,0 +1,18 @@
+---
+id: 0
+name: Mainnet deployment
+network: mainnet
+stacks-node: "https://api.hiro.so"
+bitcoin-node: "http://blockstack:blockstacksystem@bitcoin.blockstack.com:8332"
+plan:
+  batches:
+    - id: 0
+      transactions:
+        - contract-publish:
+            contract-name: StackStamp
+            expected-sender: SPVNRH0FC9XJP8J18C92J09MNBS2BS2TW55MYA15
+            cost: 25950
+            path: contracts/StackStamp.clar
+            anchor-block-only: true
+            clarity-version: 4
+      epoch: "3.3"
