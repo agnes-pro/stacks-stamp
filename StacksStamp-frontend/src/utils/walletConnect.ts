@@ -21,12 +21,12 @@ const STACKS_METHODS = [
 
 const STACKS_EVENTS = ['accountsChanged', 'chainChanged'];
 
-let web3wallet: IWeb3Wallet | null = null;
+let web3wallet: typeof WalletKit | null = null;
 
 /**
  * Initialize WalletConnect
  */
-export async function initWalletConnect(): Promise<IWeb3Wallet> {
+export async function initWalletConnect(): Promise<typeof WalletKit> {
   if (web3wallet) {
     return web3wallet;
   }
@@ -35,7 +35,7 @@ export async function initWalletConnect(): Promise<IWeb3Wallet> {
     projectId: WALLETCONNECT_PROJECT_ID,
   });
 
-  web3wallet = await Web3Wallet.init({
+  web3wallet = await WalletKit.init({
     core,
     metadata: {
       name: 'StacksStamp',
@@ -51,7 +51,7 @@ export async function initWalletConnect(): Promise<IWeb3Wallet> {
 /**
  * Get WalletConnect instance
  */
-export function getWalletConnect(): IWeb3Wallet | null {
+export function getWalletConnect(): typeof WalletKit | null {
   return web3wallet;
 }
 
