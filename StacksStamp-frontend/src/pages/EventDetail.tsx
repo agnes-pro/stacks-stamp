@@ -15,7 +15,7 @@ export default function EventDetail() {
     active: true,
     attendees: [
       { address: 'SP2J6ZY48GV1EZ5V2V5RB9MP66SW86PYKKNRV9EJ7', timestamp: '2024-01-15T11:30:00Z' },
-      { address: 'SPVNRH0FC9XJP8J18C92J09MNBS2BS2TW55MYA15', timestamp: '2024-01-15T11:32:00Z' },
+      { address: 'SP1JWWHAQQ359EBKV4X77KM716AVSFCQ1AH56RVFX', timestamp: '2024-01-15T11:32:00Z' },
     ],
   };
 

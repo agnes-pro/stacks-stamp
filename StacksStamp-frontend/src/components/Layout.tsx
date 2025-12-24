@@ -192,7 +192,7 @@ export default function Layout() {
                 Stacks Mainnet
               </p>
               <p className="text-gray-600 dark:text-gray-400 text-xs font-mono break-all">
-                Contract: SPVNRH0FC9XJP8J18C92J09MNBS2BS2TW55MYA15.StackStamp
+                Contract: SP1JWWHAQQ359EBKV4X77KM716AVSFCQ1AH56RVFX.StackStamp
               </p>
             </div>
           </div>
