@@ -29,3 +29,38 @@
 
 ;; public functions
 ;;
+
+(define-public (create-event (name (string-ascii 100)))
+  (let
+    (
+      (event-id (var-get next-event-id))
+      (creator tx-sender)
+    )
+    (asserts! (> (len name) u0) ERR_INVALID_NAME)
+
+    (map-set events event-id {creator: creator, active: true})
+    (var-set next-event-id (+ event-id u1))
+
+    (print {
+      event: "event-created",
+      event-id: event-id,
+      creator: creator,
+      name: name,
+      block-time: stacks-block-time
+    })
+
+    (ok event-id)
+  )
+)
+
+(define-public (check-in (event-id uint))
+  (let
+    (
+      (attendee tx-sender)
+      (event-data (unwrap! (map-get? events event-id) ERR_EVENT_NOT_FOUND))
+      (check-in-time stacks-block-time)
+    )
+    (asserts! (get active event-data) ERR_EVENT_NOT_FOUND)
+    (asserts! (is-none (map-get? attendance {event-id: event-id, attendee: attendee})) ERR_ALREADY_CHECKED_IN)
+
+    (map-set attendance {event-id: event-id, attendee: attendee} check-in-time)
